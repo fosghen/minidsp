@@ -1,1 +1,0 @@
-pub const SAMPLE_RATE: u32 = 10000;
