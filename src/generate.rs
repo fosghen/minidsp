@@ -1,4 +1,5 @@
 use crate::signal;
+use rand_distr::{Normal, Distribution, NormalError};
 
 pub fn create_sine(freq: f64, phase: f64, duration: f64, amplitude: f64) -> Vec<f64> {
     let sample_num = (duration * signal::SAMPLE_RATE as f64) as usize;
@@ -9,4 +10,18 @@ pub fn create_sine(freq: f64, phase: f64, duration: f64, amplitude: f64) -> Vec<
         out.push(value);
     }
     out
+}
+
+pub fn create_noise(duration: f64, std: f64, mu: f64) -> Result<Vec<f64>, NormalError> {
+    let sample_num = (duration * signal::SAMPLE_RATE as f64) as usize;
+    let mut out = Vec::with_capacity(sample_num);
+
+    let normal = Normal::new(mu, std)?;
+    let mut rng =  rand::rng();
+
+    for _ in 0..sample_num{
+        out.push(normal.sample(&mut rng));
+    }
+
+    Ok(out)
 }

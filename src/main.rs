@@ -22,10 +22,19 @@ fn main() {
                     println!("Generate sinus");
                 },
                 Some(GenCommands::Noise {
-                     std: _,
-                     mu: _,
-                     amplitude: _ }) => {
-                    println!("Genearate noise!!");
+                     std,
+                     mu,
+                     duration}) => {
+                    match generate::create_noise(duration, std, mu) {
+                        Ok(signal) => {
+                            let filename = format!("noise_{}mu_{}std.csv", mu, std);
+                            let _ = signal::save_csv(&signal, &filename);
+                            println!("Genearate noise!!");
+                        }
+                        Err(e) => {println!("Error in generation noise: {e}");}
+                    }
+                    
+
                 },
                 Some(GenCommands::Sweep { f0: _,
                      f1: _,

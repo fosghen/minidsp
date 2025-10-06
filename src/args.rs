@@ -42,8 +42,8 @@ pub enum GenCommands {
     },
 
     Noise {
-        #[arg(short, long, default_value_t = 1., help = "amplitude")]
-        amplitude: f64,
+        #[arg(short, long, default_value_t = 1., help = "duration")]
+        duration: f64,
         #[arg(short, long, default_value_t = 1., help = "standart deviation")]
         std: f64,
         #[arg(short, long, default_value_t = 1., help = "mean of noise")]
@@ -94,15 +94,15 @@ mod tests {
 
     #[test]
     fn parses_gen_noise_with_short_flags() {
-        // short flags по именам полей: amplitude -> -a, std -> -s, mu -> -m
+        // short flags по именам полей: duration -> -a, std -> -s, mu -> -m
         let cli = Cli::try_parse_from([
-            "minidsp", "gen", "noise", "-a", "0.2", "-s", "0.1", "-m", "0.0",
+            "minidsp", "gen", "noise", "-d", "0.2", "-s", "0.1", "-m", "0.0",
         ]).expect("should parse");
 
         match cli.command {
             Commands::Gen(gen_args) => match gen_args.command {
-                Some(GenCommands::Noise { amplitude, std, mu }) => {
-                    assert_eq!(amplitude, 0.2);
+                Some(GenCommands::Noise {duration, std, mu }) => {
+                    assert_eq!(duration, 0.2);
                     assert_eq!(std, 0.1);
                     assert_eq!(mu, 0.0);
                 }

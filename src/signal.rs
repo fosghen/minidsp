@@ -6,8 +6,9 @@ use std::io::Write;
 
 pub fn save_csv(signal: &Vec<f64>, filename: &str) -> std::io::Result<()> {
     let mut file = OpenOptions::new()
-        .append(true)     // добавление
-        .create(true)     // создать, если нет
+        .write(true)     
+        .create(true)     
+        .truncate(true)
         .open(filename)?;
 
     for value in signal {
