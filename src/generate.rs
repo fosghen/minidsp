@@ -26,6 +26,22 @@ pub fn create_noise(duration: f64, std: f64, mu: f64) -> Result<Vec<f64>, Normal
     Ok(out)
 }
 
+// it work, but need test
+pub fn create_linear_sweep(f0: f64, f1: f64, t1: f64) -> Vec<f64> {
+    let sample_num = (t1 * signal::SAMPLE_RATE as f64) as usize;
+    let mut out = Vec::with_capacity(sample_num);
+    let df = (f1 - f0) / sample_num as f64;
+
+
+    for i in 0..sample_num{
+        let t = i as f64 / signal::SAMPLE_RATE as f64;
+        let freq = df * i as f64 + f0;
+        let value = (2.0 * std::f64::consts::PI * freq * t).sin();
+        out.push(value);
+    }
+
+    out
+}
 
 #[cfg(test)]
 mod tests {

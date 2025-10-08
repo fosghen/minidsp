@@ -36,12 +36,21 @@ fn main() {
                     
 
                 },
-                Some(GenCommands::Sweep { f0: _,
-                     f1: _,
-                     t1: _,
-                     method: _,
+                Some(GenCommands::Sweep { 
+                     f0,
+                     f1,
+                     t1,
+                     method,
                      vertex_zero: _,}) => {
-                    println!("Genearate sweep!!");    
+                    match method.as_str() {
+                        "linear" => {
+                            let signal = generate::create_linear_sweep(f0, f1, t1);
+                            let filename = format!("sweep_{f0}_{f1}_linear.csv");
+                            let _ = signal::save_csv(&signal, &filename);
+                            println!("Genearate sweep!!");
+                        },
+                        _ => {},
+                    }
                 }
                 _ => {
                     println!("Do nothing");
