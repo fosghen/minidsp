@@ -41,7 +41,7 @@ fn main() {
                      f1,
                      t1,
                      method,
-                     vertex_zero: _,}) => {
+                     vertex_zero,}) => {
                     match method.as_str() {
                         "linear" => {
                             let signal = generate::create_linear_sweep(f0, f1, t1);
@@ -52,6 +52,12 @@ fn main() {
                         "hyperbolic" => {
                             let signal = generate::create_hyperbolic_sweep(f0, f1, t1);
                             let filename = format!("sweep_{f0}_{f1}_hyperbolic.csv");
+                            let _ = signal::save_csv(&signal, &filename);
+                            println!("Genearate sweep!!");
+                        },
+                        "quadratic" => {
+                            let signal = generate::create_quadratic_sweep(f0, f1, t1, vertex_zero);
+                            let filename = format!("sweep_{f0}_{f1}_quadratic.csv");
                             let _ = signal::save_csv(&signal, &filename);
                             println!("Genearate sweep!!");
                         },

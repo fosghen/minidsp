@@ -56,6 +56,22 @@ pub fn create_hyperbolic_sweep(f0: f64, f1: f64, t1: f64) -> Vec<f64> {
     out
 }
 
+pub fn create_quadratic_sweep(f0: f64, f1: f64, t1: f64, vertex_zero: bool) -> Vec<f64> {
+    let sample_num = (t1 * signal::SAMPLE_RATE as f64) as usize;
+    let mut out = Vec::with_capacity(sample_num);
+
+    let k = (f1 - f0) / t1.powf(2.0);
+
+    for i in 0..sample_num{
+        let t = i as f64 / signal::SAMPLE_RATE as f64;
+        let freq = if vertex_zero {f0 * t + k / 3.0 * t.powf(3.0)} else {f0 * t - k / 3.0 * t.powf(3.0) + 2.0 * k * t.powf(2.0)};
+        let value = (2.0 * std::f64::consts::PI * freq).sin();
+        out.push(value);
+    }
+
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
