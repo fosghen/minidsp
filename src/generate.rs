@@ -48,7 +48,7 @@ pub fn create_hyperbolic_sweep(f0: f64, f1: f64, t1: f64) -> Vec<f64> {
 
     for i in 0..sample_num{
         let t = i as f64 / signal::SAMPLE_RATE as f64;
-        let freq = (f0 * f1 * t1 / (f1 - f0)) * (f1 / (f0 + (f1 - f0) * t / t1)).ln();
+        let freq = (f0 * f1 * t1 / (f0 - f1)) * (f0 / (f1 + (f0 - f1) * t / t1)).ln();
         let value = (2.0 * std::f64::consts::PI * freq).sin();
         out.push(value);
     }
@@ -600,4 +600,62 @@ mod tests {
         }
     }
 
+    // ========== TESTS FOR create_hyperbolic_sweep ==========
+    #[test]
+    fn test_create_hyperbolic_sweep_basic() {
+        // Test basic hyperbolic sweep generation
+        let f0 = 100.0;  // Start frequency
+        let f1 = 1000.0; // End frequency
+        let t1 = 1.0;    // Duration
+        
+        let signal = create_hyperbolic_sweep(f0, f1, t1);
+        
+        // Check that we get the expected number of samples
+        let expected_samples = (t1 * signal::SAMPLE_RATE as f64) as usize;
+        assert_eq!(signal.len(), expected_samples, "Wrong number of samples for linear sweep");
+        
+        // Check that signal is not empty
+        assert!(!signal.is_empty(), "Linear sweep signal should not be empty");
+        
+        // Check that all values are within [-1, 1] range (since we use sin)
+        assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+                "All sweep values should be within [-1, 1] range");
+    }
+
+    fn compute_freq(signal: &Vec<f64>, num_pts: i32, idx_start: i32) -> f64 {
+        let mut zeros = 0;
+
+        for pair in signal[idx_start as usize..(idx_start + num_pts) as usize].windows(2) {
+            if pair[0].signum() != pair[1].signum(){
+                zeros += 1;
+            }
+        }
+        zeros as f64 / 2.0 / num_pts as f64 * signal::SAMPLE_RATE as f64
+    }
+
+    #[test]
+    fn test_create_hyperbolic_sweep_sweep_freqs() {
+        // Test frequency hyperbolic sweep generation
+        let f0 = 100.0;  // Start frequency
+        let f1 = 1000.0; // End frequency
+        let t1 = 1.0;    // Duration
+        
+        let signal = create_hyperbolic_sweep(f0, f1, t1);
+        
+        // Check that we get the expected number of samples
+        let expected_samples = (t1 * signal::SAMPLE_RATE as f64) as usize;
+        assert_eq!(signal.len(), expected_samples, "Wrong number of samples for linear sweep");
+        
+        // Check f0 is 100
+        assert!((f0 - compute_freq(&signal, 100, 0)).abs() < f0 * 0.06,
+         "Freq at start is {}, but expect {}", compute_freq(&signal, 100, 0), f0);
+        // Check f1 is 1000
+        assert!((f1 - compute_freq(&signal, 100, expected_samples as i32 - 101)).abs() < f1 * 0.06, 
+        "Freq at end is {}, but expect {}", compute_freq(&signal, 100, expected_samples as i32 - 101), f1);
+
+        // Check that all values are within [-1, 1] range (since we use sin)
+        assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+                "All sweep values should be within [-1, 1] range");
+    }
+    
 }
