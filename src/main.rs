@@ -50,10 +50,14 @@ fn main() {
                             println!("Genearate sweep!!");
                         },
                         "hyperbolic" => {
-                            let signal = generate::create_hyperbolic_sweep(f0, f1, t1);
+                            let result = generate::create_hyperbolic_sweep(f0, f1, t1);
                             let filename = format!("sweep_{f0}_{f1}_hyperbolic.csv");
-                            let _ = signal::save_csv(&signal, &filename);
-                            println!("Genearate sweep!!");
+                            if let Ok(signal) = result {
+                                let _ = signal::save_csv(&signal, &filename);
+                                println!("Genearate sweep!!");
+                            } else {
+                                println!("Fail ti generate {filename}");
+                            }
                         },
                         "quadratic" => {
                             let signal = generate::create_quadratic_sweep(f0, f1, t1, vertex_zero);
