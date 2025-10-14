@@ -39,6 +39,8 @@ pub enum GenCommands {
         duration: f64,
         #[arg(short, long, default_value_t = 1., help = "amplitude of sinus")]
         amplitude: f64,
+        #[arg(short, long, default_value = "", help = "filename")]
+        out_filename: String,
     },
 
     Noise {
@@ -48,6 +50,8 @@ pub enum GenCommands {
         std: f64,
         #[arg(short, long, default_value_t = 1., help = "mean of noise")]
         mu: f64,
+        #[arg(short, long, default_value = "", help = "filename")]
+        out_filename: String,
     },
 
     Sweep {
@@ -61,6 +65,8 @@ pub enum GenCommands {
         method: String,
         #[arg(short, long, help = "only for quadratic, vertex of the parabola")]
         vertex_zero: bool,
+        #[arg(short, long, default_value = "", help = "filename")]
+        out_filename: String,
     }
 }
 
@@ -81,11 +87,12 @@ mod tests {
 
         match cli.command {
             Commands::Gen(gen_args) => match gen_args.command {
-                Some(GenCommands::Sine { freq, phase, duration, amplitude }) => {
+                Some(GenCommands::Sine { freq, phase, duration, amplitude, out_filename}) => {
                     assert_eq!(freq, 440.0);
                     assert_eq!(phase, 0.0);
                     assert_eq!(duration, 2.0);
                     assert_eq!(amplitude, 0.5);
+                    assert_eq!(out_filename, "");
                 }
                 other => panic!("expected Sine, got {:?}", other),
             },
@@ -101,10 +108,11 @@ mod tests {
 
         match cli.command {
             Commands::Gen(gen_args) => match gen_args.command {
-                Some(GenCommands::Noise {duration, std, mu }) => {
+                Some(GenCommands::Noise {duration, std, mu, out_filename}) => {
                     assert_eq!(duration, 0.2);
                     assert_eq!(std, 0.1);
                     assert_eq!(mu, 0.0);
+                    assert_eq!(out_filename, "");
                 }
                 other => panic!("expected Noise, got {:?}", other),
             },
@@ -118,12 +126,13 @@ mod tests {
 
         match cli.command {
             Commands::Gen(gen_args) => match gen_args.command {
-                Some(GenCommands::Sweep { f0, f1, t1, method, vertex_zero }) => {
+                Some(GenCommands::Sweep { f0, f1, t1, method, vertex_zero, out_filename}) => {
                     assert_eq!(f0, 1.0);
                     assert_eq!(f1, 1.0);
                     assert_eq!(t1, 1.0);
                     assert_eq!(method, "linear");
                     assert!(!vertex_zero);
+                    assert_eq!(out_filename, "");
                 }
                 other => panic!("expected Sweep, got {:?}", other),
             },
