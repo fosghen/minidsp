@@ -19,7 +19,7 @@ pub fn create_noise(duration: f64, std: f64, mu: f64) -> Result<Vec<f64>, Box<dy
     let mut out = Vec::with_capacity(sample_num);
     
     let normal = Normal::new(mu, std)?;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     
     for _ in 0..sample_num{
         out.push(normal.sample(&mut rng));
