@@ -76,7 +76,7 @@ mod tests {
     use clap::Parser;
 
     #[test]
-    fn parses_gen_sine_with_long_flags() {
+    fn test_parses_gen_sine_with_long_flags() {
         let cli = Cli::try_parse_from([
             "minidsp", "gen", "sine",
             "--freq", "440",
@@ -100,7 +100,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_gen_noise_with_short_flags() {
+    fn test_parses_gen_noise_with_short_flags() {
         // short flags по именам полей: duration -> -a, std -> -s, mu -> -m
         let cli = Cli::try_parse_from([
             "minidsp", "gen", "noise", "-d", "0.2", "-s", "0.1", "-m", "0.0",
@@ -120,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_gen_sweep_with_defaults_present() {
+    fn test_parses_gen_sweep_with_defaults_present() {
         // Можно опустить флаги, у которых есть default_value_t / default_value
         let cli = Cli::try_parse_from(["minidsp", "gen", "sweep"]).expect("should parse");
 
@@ -140,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_gen_without_subcommand_as_none() {
+    fn test_parses_gen_without_subcommand_as_none() {
         // subcommand у Gen — Option<GenCommands>, значит без подкоманды вернётся None
         let cli = Cli::try_parse_from(["minidsp", "gen"]).expect("should parse");
 
@@ -152,7 +152,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_unknown_subcommand() {
+    fn test_rejects_unknown_subcommand() {
         let parsed = Cli::try_parse_from(["minidsp", "gen", "unknown"]);
         assert!(parsed.is_err(), "unknown subcommand must error");
     }

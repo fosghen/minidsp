@@ -1,3 +1,5 @@
+[![codecov](https://app.codecov.io/github/fosghen/minidsp/graph/badge.svg)](https://app.codecov.io/github/fosghen/minidsp)
+
 # MiniDSP — минималистичный CLI для генерации и простых операций с сигналами
 
 Проект для практики Rust на задачах цифровой обработки сигналов (DSP). Сейчас это исполняемый бинарь с CLI, умеющий генерировать тестовые сигналы и сохранять их в CSV.
