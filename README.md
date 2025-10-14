@@ -97,7 +97,7 @@ cargo test
 - [x] Реализовать `gen sweep` (минимум линейный вариант)
 - [x] Выводить имена выходных файлов и путь сохранения в CLI
 - [x] Добавить проверку входных параметров (валидаторы для freq/duration/amplitude)
-- [] Написать unit-тесты для `generate::create_sine` и `signal::save_csv`
+- [x] Написать unit-тесты для `generate::create_sine` и `signal::save_csv`
 
 ### Работа с файлами (WAV)
 - [ ] Добавить зависимость `hound` и модуль `wav.rs`
