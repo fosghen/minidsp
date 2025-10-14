@@ -1,4 +1,4 @@
-[![codecov](https://app.codecov.io/github/fosghen/minidsp/graph/badge.svg)](https://app.codecov.io/github/fosghen/minidsp)
+[![codecov](https://app.codecov.io/gh/fosghen/minidsp/graph/badge.svg)](https://app.codecov.io/gh/fosghen/minidsp)
 
 # MiniDSP — минималистичный CLI для генерации и простых операций с сигналами
 
