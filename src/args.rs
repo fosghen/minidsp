@@ -15,17 +15,25 @@ pub struct Cli {
 }
 
 #[derive(Debug, Subcommand)]
-#[command(args_conflicts_with_subcommands = true)]
-#[command(flatten_help = true)]
 pub enum Commands {
     /// Generare signal
     Gen(GenArgs),
+    /// Sum of two signals
     Add {
         #[arg(short('1'), long, help = "first signal")]
         signal1: String, 
         #[arg(short('2'), long, help = "second signal")]
         signal2: String,
-        #[arg(short, long, default_value = "sum_of_signals.wav", help = "fname of output fname")]
+        #[arg(short, long, default_value = "sum_of_signals.wav", help = "fname of output signal")]
+        out_signal: String,
+    },
+    /// Substraction of two signals
+    Sub {
+        #[arg(short('1'), long, help = "first signal")]
+        signal1: String, 
+        #[arg(short('2'), long, help = "second signal")]
+        signal2: String,
+        #[arg(short, long, default_value = "sub_of_signals.wav", help = "fname of output signal")]
         out_signal: String,
     }
 }

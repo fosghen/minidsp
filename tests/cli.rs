@@ -15,6 +15,8 @@ Usage: minidsp <COMMAND>
 
 Commands:
   gen   Generare signal
+  add   Sum of two signals
+  sub   Substraction of two signals
   help  Print this message or the help of the given subcommand(s)
 
 Options:
@@ -70,6 +72,48 @@ minidsp gen sweep:
 minidsp gen help:
 Print this message or the help of the given subcommand(s)
   [COMMAND]...  Print help for the subcommand(s)
+"#);
+
+    Ok(())
+}
+
+#[test]
+fn test_add_help() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("add").arg("-h");
+    cmd.assert()
+        .success()
+        .stdout(
+r#"Sum of two signals
+
+Usage: minidsp add [OPTIONS] --signal1 <SIGNAL1> --signal2 <SIGNAL2>
+
+Options:
+  -1, --signal1 <SIGNAL1>        first signal
+  -2, --signal2 <SIGNAL2>        second signal
+  -o, --out-signal <OUT_SIGNAL>  fname of output signal [default: sum_of_signals.wav]
+  -h, --help                     Print help
+"#);
+
+    Ok(())
+}
+
+#[test]
+fn test_sub_help() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("sub").arg("-h");
+    cmd.assert()
+        .success()
+        .stdout(
+r#"Substraction of two signals
+
+Usage: minidsp sub [OPTIONS] --signal1 <SIGNAL1> --signal2 <SIGNAL2>
+
+Options:
+  -1, --signal1 <SIGNAL1>        first signal
+  -2, --signal2 <SIGNAL2>        second signal
+  -o, --out-signal <OUT_SIGNAL>  fname of output signal [default: sub_of_signals.wav]
+  -h, --help                     Print help
 "#);
 
     Ok(())
@@ -165,6 +209,44 @@ fn test_gen_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cmd3 = Command::cargo_bin("minidsp")?;
     cmd3.arg("add")
+    .arg("-1").arg("sine1.wav")
+    .arg("-2").arg("sine2.wav")
+    .arg("-o").arg("sine3.wav");
+
+    cmd3.assert()
+        .success();
+    fs::remove_file("sine1.wav").ok();
+    fs::remove_file("sine2.wav").ok();
+    fs::remove_file("sine3.wav").ok();
+
+    Ok(())
+}
+
+#[test]
+fn test_gen_dsp_sub() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("gen").arg("sine")
+    .arg("-f").arg("30")
+    .arg("-d").arg("3")
+    .arg("-o").arg("sine1.wav");
+
+    cmd.assert()
+        .success()
+        .stdout("Generate sinus\n");
+    
+
+    let mut cmd2 = Command::cargo_bin("minidsp")?;
+    cmd2.arg("gen").arg("sine")
+    .arg("-f").arg("30")
+    .arg("-d").arg("2")
+    .arg("-o").arg("sine2.wav");
+
+    cmd2.assert()
+        .success()
+        .stdout("Generate sinus\n");
+
+    let mut cmd3 = Command::cargo_bin("minidsp")?;
+    cmd3.arg("sub")
     .arg("-1").arg("sine1.wav")
     .arg("-2").arg("sine2.wav")
     .arg("-o").arg("sine3.wav");
