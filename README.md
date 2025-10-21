@@ -104,9 +104,9 @@ cargo test
 - [x] Написать unit-тесты для `generate::create_sine` и `signal::save_csv`
 
 ### Работа с файлами (WAV)
-- [ ] Добавить зависимость `hound` и модуль `wav.rs`
-- [ ] `save_wav(Vec<f64>)` и `load_wav()` с конвертацией масштабов
-- [ ] Добавить флаги CLI для сохранения в WAV (`--wav <path>`) помимо CSV
+- [X] Добавить зависимость `hound` и модуль `wav.rs`
+- [X] `save_wav(Vec<f64>)` и `read_wav()` с конвертацией масштабов
+- [x] Добавить флаги CLI для сохранения в WAV (`-o <path>`)
 
 ### Базовые DSP операции
 - [ ] `normalize(&mut [f64], target_rms)`
