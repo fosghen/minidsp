@@ -15,9 +15,19 @@ pub struct Cli {
 }
 
 #[derive(Debug, Subcommand)]
+#[command(args_conflicts_with_subcommands = true)]
+#[command(flatten_help = true)]
 pub enum Commands {
     /// Generare signal
     Gen(GenArgs),
+    Add {
+        #[arg(short('1'), long, help = "first signal")]
+        signal1: String, 
+        #[arg(short('2'), long, help = "second signal")]
+        signal2: String,
+        #[arg(short, long, default_value = "sum_of_signals.wav", help = "fname of output fname")]
+        out_signal: String,
+    }
 }
 
 #[derive(Debug, Args)]
@@ -96,6 +106,7 @@ mod tests {
                 }
                 other => panic!("expected Sine, got {:?}", other),
             },
+            _=>{},
         }
     }
 
@@ -116,6 +127,7 @@ mod tests {
                 }
                 other => panic!("expected Noise, got {:?}", other),
             },
+            _=>{},
         }
     }
 
@@ -136,6 +148,7 @@ mod tests {
                 }
                 other => panic!("expected Sweep, got {:?}", other),
             },
+            _=>{},
         }
     }
 
@@ -148,6 +161,7 @@ mod tests {
             Commands::Gen(gen_args) => {
                 assert!(gen_args.command.is_none(), "expected no subcommand");
             }
+            _=>{},
         }
     }
 

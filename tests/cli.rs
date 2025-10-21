@@ -139,3 +139,41 @@ fn test_gen_hyperbolic_sweep() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_gen_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("gen").arg("sine")
+    .arg("-f").arg("30")
+    .arg("-d").arg("3")
+    .arg("-o").arg("sine1.wav");
+
+    cmd.assert()
+        .success()
+        .stdout("Generate sinus\n");
+    
+
+    let mut cmd2 = Command::cargo_bin("minidsp")?;
+    cmd2.arg("gen").arg("sine")
+    .arg("-f").arg("30")
+    .arg("-d").arg("2")
+    .arg("-o").arg("sine2.wav");
+
+    cmd2.assert()
+        .success()
+        .stdout("Generate sinus\n");
+
+    let mut cmd3 = Command::cargo_bin("minidsp")?;
+    cmd3.arg("add")
+    .arg("-1").arg("sine1.wav")
+    .arg("-2").arg("sine2.wav")
+    .arg("-o").arg("sine3.wav");
+
+    cmd3.assert()
+        .success();
+    fs::remove_file("sine1.wav").ok();
+    fs::remove_file("sine2.wav").ok();
+    fs::remove_file("sine3.wav").ok();
+
+    Ok(())
+}

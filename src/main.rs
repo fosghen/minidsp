@@ -74,6 +74,17 @@ fn main() {
                     println!("Do nothing");
                 },
             }
+        },
+        Commands::Add{signal1, signal2, out_signal} => {
+            let mut sig1: Vec<f64> = Vec::new();
+            let mut sig2: Vec<f64> = Vec::new();
+
+            let _ = signal::read_wave(&mut sig1, &signal1);
+            let _ = signal::read_wave(&mut sig2, &signal2);
+
+            let result = dsp::add_sgnals(&sig1, &sig2);
+
+            let _ = signal::save_wave(&result, &out_signal);
         }
     }
 }
