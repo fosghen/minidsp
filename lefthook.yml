@@ -1,0 +1,39 @@
+# lefthook.yml
+pre-commit:
+  parallel: true
+  commands:
+
+    check-fmt:
+      run: cargo fmt --all -- --check
+      stage_fixed: true
+      glob: "**/*.rs"
+      skip:
+        - merge
+
+    clippy:
+      run: cargo clippy --all-targets --all-features -- -D warnings
+      glob: "**/*.rs"
+
+    check:
+      run: cargo check
+      glob: "**/*.rs"
+
+    test:
+      run: cargo test --workspace -- --nocapture
+      skip:
+        - merge
+
+    cargo-toml-sort:
+      run: cargo sort --check || (echo "Please run 'cargo sort' to fix Cargo.toml" && exit 1)
+      skip:
+        - merge
+
+    security-audit:
+      run: cargo audit || echo "Security audit failed (cargo audit)"
+      skip:
+        - merge
+
+    forbid-dbg:
+      run: "! grep -R --exclude-dir=target --exclude-dir=.git --include='*.rs' 'dbg!' ."
+      skip:
+        - merge
