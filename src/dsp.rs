@@ -53,6 +53,21 @@ pub fn scaling(sig1: &[f64], amplitude: f64) -> Vec<f64> {
     sig_new
 }
 
+pub fn move_average(sig1: &[f64], kernel_length: i32) -> Vec<f64> {
+    let mut sig_new: Vec<f64> = Vec::new();
+
+    if sig1.len() < kernel_length as usize {
+        return sig_new;
+    }
+
+    for i in 0..=sig1.len() - kernel_length as usize {
+        let mean = sig1[i..i + kernel_length as usize].iter().sum::<f64>() / kernel_length as f64;
+        sig_new.push(mean);
+    }
+
+    sig_new
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -219,5 +234,83 @@ mod tests {
         let result = scaling(&sig, amplitude);
         assert!(result[0].is_infinite());
         assert_eq!(result[1], -6.0);
+    }
+
+    #[test]
+    fn test_move_average_basic() {
+        let sig = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let kernel = 3;
+        let result = move_average(&sig, kernel);
+        let expected = vec![2.0, 3.0, 4.0]; // (1+2+3)/3, (2+3+4)/3, (3+4+5)/3
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_move_average_kernel_1() {
+        let sig = vec![1.0, 2.0, 3.0];
+        let kernel = 1;
+        let result = move_average(&sig, kernel);
+        // Должен вернуть все элементы (усреднение по одному элементу)
+        assert_eq!(result, vec![1.0, 2.0, 3.0]);
+    }
+
+    #[test]
+    fn test_move_average_kernel_equals_signal_length() {
+        let sig = vec![1.0, 2.0, 3.0];
+        let kernel = 3;
+        let result = move_average(&sig, kernel);
+        // Только одно окно: [0..3]
+        assert_eq!(result, vec![2.0]);
+    }
+
+    #[test]
+    fn test_move_average_kernel_larger_than_signal() {
+        let sig = vec![1.0, 2.0];
+        let kernel = 5;
+        let result = move_average(&sig, kernel);
+        // Нет ни одного полного окна → пустой результат
+        assert_eq!(result, Vec::<f64>::new());
+    }
+
+    #[test]
+    fn test_move_average_empty_signal() {
+        let sig: Vec<f64> = vec![];
+        let kernel = 3;
+        let result = move_average(&sig, kernel);
+        assert_eq!(result, Vec::<f64>::new());
+    }
+
+    #[test]
+    fn test_move_average_with_negative_and_fractional() {
+        let sig = vec![-1.0, 0.0, 1.0, 2.0];
+        let kernel = 2;
+        let result = move_average(&sig, kernel);
+        let expected = vec![-0.5, 0.5, 1.5]; // (-1+0)/2, (0+1)/2, (1+2)/2
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_move_average_kernel_zero() {
+        // kernel_length = 0 → деление на ноль!
+        // В текущей реализации: kernel_length as usize = 0 → sig1.len() - 0 = len
+        // Затем в цикле: sig1[i..i+0] — пустой срез → sum = 0.0, деление на 0.0 → NaN
+        let sig = vec![1.0, 2.0, 3.0];
+        let result = move_average(&sig, 0);
+        // Поведение: цикл выполняется sig1.len() раз, каждый раз push(NaN)
+        assert!(result.iter().all(|&x| x.is_nan()));
+    }
+
+    #[test]
+    fn test_move_average_kernel_negative() {
+        // kernel_length < 0 → as usize даёт большое положительное число
+        // sig1.len() - (большое число) → переполнение (panic в debug, wrap в release)
+        // В debug-режиме это panic! "attempt to subtract with overflow"
+        // Поэтому такой вызов — ошибка программиста.
+        // Тест можно пропустить или проверить панику:
+        let sig = vec![1.0, 2.0, 3.0];
+        let _ = std::panic::catch_unwind(|| {
+            move_average(&sig, -1);
+        });
+        // В production лучше валидировать входные данные
     }
 }

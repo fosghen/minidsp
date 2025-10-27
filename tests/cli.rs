@@ -22,12 +22,13 @@ fn test_general_help() -> Result<(), Box<dyn std::error::Error>> {
 Usage: minidsp <COMMAND>
 
 Commands:
-  gen    Generare signal
-  add    Sum of two signals
-  sub    Substraction of two signals
-  mux    Multiplex of two signals
-  scale  Scaling of signal
-  help   Print this message or the help of the given subcommand(s)
+  gen          Generare signal
+  add          Sum of two signals
+  sub          Substraction of two signals
+  mux          Multiplex of two signals
+  scale        Scaling of signal
+  mov-average  Moving average
+  help         Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help     Print help
@@ -162,6 +163,26 @@ Options:
   -a, --amplitude <AMPLITUDE>    second signal [default: 1]
   -o, --out-signal <OUT_SIGNAL>  fname of output signal [default: scaled_signal.wav]
   -h, --help                     Print help
+"#,
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_move_avarage_help() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("mov-average").arg("-h");
+    cmd.assert().success().stdout(
+        r#"Moving average
+
+Usage: minidsp mov-average [OPTIONS] --signal <SIGNAL>
+
+Options:
+  -s, --signal <SIGNAL>                signal
+  -k, --kernel-length <KERNEL_LENGTH>  length of window for average [default: 1]
+  -o, --out-signal <OUT_SIGNAL>        fname of output signal [default: scaled_signal.wav]
+  -h, --help                           Print help
 "#,
     );
 
@@ -428,6 +449,58 @@ fn test_dsp_scale() -> Result<(), Box<dyn std::error::Error>> {
 
     fs::remove_file("sine1.wav").ok();
     fs::remove_file("sine2.wav").ok();
+
+    Ok(())
+}
+
+#[test]
+fn test_dsp_move_average() -> Result<(), Box<dyn std::error::Error>> {
+    let _guard = serial_test_guard();
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("gen")
+        .arg("noise")
+        .arg("-d")
+        .arg("3")
+        .arg("-o")
+        .arg("noise.wav");
+
+    cmd.assert().success();
+
+    let mut cmd2 = Command::cargo_bin("minidsp")?;
+    cmd2.arg("mov-average")
+        .arg("-s")
+        .arg("noise.wav")
+        .arg("-k")
+        .arg("13")
+        .arg("-o")
+        .arg("noise_meaned.wav");
+
+    cmd2.assert().success();
+
+    let mut reader = hound::WavReader::open("noise_meaned.wav")?;
+    let mut sig: Vec<f64> = Vec::new();
+
+    for sample_real in reader.samples::<f32>().flatten() {
+        if sample_real.is_nan() {
+            panic!("{sample_real}")
+        }
+        sig.push(sample_real as f64);
+    }
+
+    let n = sig.len() as f64;
+    let mean = sig.iter().sum::<f64>() / n;
+    let variance = sig.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n;
+    let std = variance.sqrt();
+
+    assert!(
+        (mean - 1.).abs() < 0.5,
+        "Mean should be around 1, but it's {mean}"
+    );
+
+    assert!(std < 0.5, "Std should be around 1, but it's {std}");
+
+    // fs::remove_file("noise.wav").ok();
+    // fs::remove_file("noise_meaned.wav").ok();
 
     Ok(())
 }

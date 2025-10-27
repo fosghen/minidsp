@@ -152,5 +152,18 @@ fn main() {
 
             let _ = signal::save_wave(&result, &out_signal);
         }
+        Commands::MovAverage {
+            signal,
+            kernel_length,
+            out_signal,
+        } => {
+            let mut sig: Vec<f64> = Vec::new();
+
+            let _ = signal::read_wave(&mut sig, &signal);
+
+            let result = dsp::move_average(&sig, kernel_length);
+
+            let _ = signal::save_wave(&result, &out_signal);
+        }
     }
 }

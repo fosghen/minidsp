@@ -74,6 +74,25 @@ pub enum Commands {
         )]
         out_signal: String,
     },
+    /// Moving average
+    MovAverage {
+        #[arg(short, long, help = "signal")]
+        signal: String,
+        #[arg(
+            short,
+            long,
+            default_value_t = 1,
+            help = "length of window for average"
+        )]
+        kernel_length: i32,
+        #[arg(
+            short,
+            long,
+            default_value = "scaled_signal.wav",
+            help = "fname of output signal"
+        )]
+        out_signal: String,
+    },
 }
 
 #[derive(Debug, Args)]
