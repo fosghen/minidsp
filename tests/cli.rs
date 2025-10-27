@@ -1,6 +1,16 @@
 use assert_cmd::prelude::*;
 use std::fs;
 use std::process::Command;
+use std::sync::{Mutex, OnceLock};
+
+static SERIAL_TEST_MUTEX: OnceLock<Mutex<()>> = OnceLock::new();
+
+fn serial_test_guard() -> std::sync::MutexGuard<'static, ()> {
+    SERIAL_TEST_MUTEX
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap()
+}
 
 #[test]
 fn test_general_help() -> Result<(), Box<dyn std::error::Error>> {
@@ -12,11 +22,12 @@ fn test_general_help() -> Result<(), Box<dyn std::error::Error>> {
 Usage: minidsp <COMMAND>
 
 Commands:
-  gen   Generare signal
-  add   Sum of two signals
-  sub   Substraction of two signals
-  mux   Multiplex of two signals
-  help  Print this message or the help of the given subcommand(s)
+  gen    Generare signal
+  add    Sum of two signals
+  sub    Substraction of two signals
+  mux    Multiplex of two signals
+  scale  Scaling of signal
+  help   Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help     Print help
@@ -47,7 +58,7 @@ Options:
 
 minidsp gen sine:
   -f, --freq <FREQ>                  frequency in Hz [default: 50]
-  -p, --phase <PHASE>                phase in radians [default: 0]
+  -p, --phase <PHASE>                phase in degrees [default: 0]
   -d, --duration <DURATION>          duration in seconds [default: 1]
   -a, --amplitude <AMPLITUDE>        amplitude of sinus [default: 1]
   -o, --out-filename <OUT_FILENAME>  filename [default: ]
@@ -138,6 +149,26 @@ Options:
 }
 
 #[test]
+fn test_scale_help() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("scale").arg("-h");
+    cmd.assert().success().stdout(
+        r#"Scaling of signal
+
+Usage: minidsp scale [OPTIONS] --signal <SIGNAL>
+
+Options:
+  -s, --signal <SIGNAL>          signal
+  -a, --amplitude <AMPLITUDE>    second signal [default: 1]
+  -o, --out-signal <OUT_SIGNAL>  fname of output signal [default: scaled_signal.wav]
+  -h, --help                     Print help
+"#,
+    );
+
+    Ok(())
+}
+
+#[test]
 fn test_gen_sine() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("gen").arg("sine");
@@ -193,7 +224,8 @@ fn test_gen_hyperbolic_sweep() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_gen_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
+fn test_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
+    let _guard = serial_test_guard();
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("gen")
         .arg("sine")
@@ -213,6 +245,8 @@ fn test_gen_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
         .arg("30")
         .arg("-d")
         .arg("2")
+        .arg("-p")
+        .arg("180")
         .arg("-o")
         .arg("sine2.wav");
 
@@ -228,6 +262,13 @@ fn test_gen_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
         .arg("sine3.wav");
 
     cmd3.assert().success();
+
+    let mut reader = hound::WavReader::open("sine3.wav")?;
+
+    for sample in reader.samples::<f32>().flatten() {
+        assert!(sample.abs() < 1e-6, "Summ not equal zero, it's {sample}");
+    }
+
     fs::remove_file("sine1.wav").ok();
     fs::remove_file("sine2.wav").ok();
     fs::remove_file("sine3.wav").ok();
@@ -236,7 +277,8 @@ fn test_gen_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_gen_dsp_sub() -> Result<(), Box<dyn std::error::Error>> {
+fn test_dsp_sub() -> Result<(), Box<dyn std::error::Error>> {
+    let _guard = serial_test_guard();
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("gen")
         .arg("sine")
@@ -271,9 +313,121 @@ fn test_gen_dsp_sub() -> Result<(), Box<dyn std::error::Error>> {
         .arg("sine3.wav");
 
     cmd3.assert().success();
+
+    let mut reader = hound::WavReader::open("sine3.wav")?;
+
+    for sample in reader.samples::<f32>().flatten() {
+        assert!(sample.abs() < 1e-6, "Sub not equal zero, it's {sample}");
+    }
+
     fs::remove_file("sine1.wav").ok();
     fs::remove_file("sine2.wav").ok();
     fs::remove_file("sine3.wav").ok();
+
+    Ok(())
+}
+
+#[test]
+fn test_dsp_mux() -> Result<(), Box<dyn std::error::Error>> {
+    let _guard = serial_test_guard();
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("gen")
+        .arg("sine")
+        .arg("-f")
+        .arg("30")
+        .arg("-d")
+        .arg("3")
+        .arg("-o")
+        .arg("sine1.wav");
+
+    cmd.assert().success().stdout("Generate sinus\n");
+
+    let mut cmd2 = Command::cargo_bin("minidsp")?;
+    cmd2.arg("gen")
+        .arg("sine")
+        .arg("-f")
+        .arg("30")
+        .arg("-d")
+        .arg("2")
+        .arg("-a")
+        .arg("10")
+        .arg("-o")
+        .arg("sine2.wav");
+
+    cmd2.assert().success().stdout("Generate sinus\n");
+
+    let mut cmd3 = Command::cargo_bin("minidsp")?;
+    cmd3.arg("mux")
+        .arg("-1")
+        .arg("sine1.wav")
+        .arg("-2")
+        .arg("sine2.wav")
+        .arg("-o")
+        .arg("sine3.wav");
+
+    cmd3.assert().success();
+
+    let mut reader = hound::WavReader::open("sine3.wav")?;
+    let mut max_val = 0.0;
+    for sample_real in reader.samples::<f32>().flatten() {
+        if sample_real > max_val {
+            max_val = sample_real;
+        }
+    }
+
+    assert!(
+        (max_val - 10.).abs() < 1e-6,
+        "Amplitede should be around 10, but it's {max_val}"
+    );
+
+    fs::remove_file("sine1.wav").ok();
+    fs::remove_file("sine2.wav").ok();
+    fs::remove_file("sine3.wav").ok();
+
+    Ok(())
+}
+
+#[test]
+fn test_dsp_scale() -> Result<(), Box<dyn std::error::Error>> {
+    let _guard = serial_test_guard();
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("gen")
+        .arg("sine")
+        .arg("-f")
+        .arg("30")
+        .arg("-d")
+        .arg("3")
+        .arg("-o")
+        .arg("sine1.wav");
+
+    cmd.assert().success().stdout("Generate sinus\n");
+
+    let mut cmd2 = Command::cargo_bin("minidsp")?;
+    cmd2.arg("scale")
+        .arg("-s")
+        .arg("sine1.wav")
+        .arg("-a")
+        .arg("10")
+        .arg("-o")
+        .arg("sine2.wav");
+
+    cmd2.assert().success();
+
+    let mut reader = hound::WavReader::open("sine2.wav")?;
+    let mut max_val = 0.0;
+    for sample_real in reader.samples::<f32>().flatten() {
+        if sample_real > max_val {
+            max_val = sample_real;
+        }
+    }
+
+    assert!(
+        (max_val - 10.).abs() < 1e-6,
+        "Amplitede should be around 10, but it's {max_val}"
+    );
+
+    fs::remove_file("sine1.wav").ok();
+    fs::remove_file("sine2.wav").ok();
 
     Ok(())
 }

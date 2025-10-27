@@ -43,6 +43,16 @@ pub fn mux_signal(sig1: &[f64], sig2: &[f64]) -> Vec<f64> {
     sig_new
 }
 
+pub fn scaling(sig1: &[f64], amplitude: f64) -> Vec<f64> {
+    let mut sig_new: Vec<f64> = Vec::new();
+
+    for element in sig1.iter() {
+        sig_new.push(element * amplitude);
+    }
+
+    sig_new
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -150,5 +160,64 @@ mod tests {
         let sig2 = vec![3.0, -4.0];
         let expected = vec![-3.0, 8.0];
         assert_eq!(mux_signal(&sig1, &sig2), expected);
+    }
+
+    #[test]
+    fn test_scaling_normal_values() {
+        let sig = vec![1.0, 2.0, 3.0];
+        let amplitude = 2.5;
+        let expected = vec![2.5, 5.0, 7.5];
+        assert_eq!(scaling(&sig, amplitude), expected);
+    }
+
+    #[test]
+    fn test_scaling_with_zero_amplitude() {
+        let sig = vec![1.0, -2.0, 3.5];
+        let amplitude = 0.0;
+        let expected = vec![0.0, 0.0, 0.0];
+        assert_eq!(scaling(&sig, amplitude), expected);
+    }
+
+    #[test]
+    fn test_scaling_with_negative_amplitude() {
+        let sig = vec![1.0, -2.0, 3.0];
+        let amplitude = -1.0;
+        let expected = vec![-1.0, 2.0, -3.0];
+        assert_eq!(scaling(&sig, amplitude), expected);
+    }
+
+    #[test]
+    fn test_scaling_empty_signal() {
+        let sig: Vec<f64> = vec![];
+        let amplitude = 5.0;
+        let expected: Vec<f64> = vec![];
+        assert_eq!(scaling(&sig, amplitude), expected);
+    }
+
+    #[test]
+    fn test_scaling_with_fractional_amplitude() {
+        let sig = vec![4.0, 8.0, 12.0];
+        let amplitude = 0.5;
+        let expected = vec![2.0, 4.0, 6.0];
+        assert_eq!(scaling(&sig, amplitude), expected);
+    }
+
+    #[test]
+    fn test_scaling_with_nan() {
+        let sig = vec![1.0, f64::NAN, 3.0];
+        let amplitude = 2.0;
+        let result = scaling(&sig, amplitude);
+        assert!(result[0].is_finite());
+        assert!(result[1].is_nan());
+        assert!(result[2].is_finite());
+    }
+
+    #[test]
+    fn test_scaling_with_infinity() {
+        let sig = vec![f64::INFINITY, -2.0];
+        let amplitude = 3.0;
+        let result = scaling(&sig, amplitude);
+        assert!(result[0].is_infinite());
+        assert_eq!(result[1], -6.0);
     }
 }

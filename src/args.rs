@@ -60,6 +60,20 @@ pub enum Commands {
         )]
         out_signal: String,
     },
+    /// Scaling of signal
+    Scale {
+        #[arg(short, long, help = "signal")]
+        signal: String,
+        #[arg(short, long, default_value_t = 1., help = "second signal")]
+        amplitude: f64,
+        #[arg(
+            short,
+            long,
+            default_value = "scaled_signal.wav",
+            help = "fname of output signal"
+        )]
+        out_signal: String,
+    },
 }
 
 #[derive(Debug, Args)]
@@ -75,7 +89,7 @@ pub enum GenCommands {
     Sine {
         #[arg(short, long, default_value_t = 50., help = "frequency in Hz")]
         freq: f64,
-        #[arg(short, long, default_value_t = 0., help = "phase in radians")]
+        #[arg(short, long, default_value_t = 0., help = "phase in degrees")]
         phase: f64,
         #[arg(short, long, default_value_t = 1., help = "duration in seconds")]
         duration: f64,

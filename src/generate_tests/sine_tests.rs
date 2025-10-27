@@ -35,7 +35,7 @@ mod tests {
     fn test_create_sine_phase() {
         // Test with non-zero phase
         let freq = 100.0;
-        let phase = std::f64::consts::PI / 2.0; // 90 degrees
+        let phase = 90.; // 90 degrees
         let duration = 0.01; // 10ms
         let amplitude = 0.5;
         

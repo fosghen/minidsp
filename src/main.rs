@@ -139,5 +139,18 @@ fn main() {
 
             let _ = signal::save_wave(&result, &out_signal);
         }
+        Commands::Scale {
+            signal,
+            amplitude,
+            out_signal,
+        } => {
+            let mut sig: Vec<f64> = Vec::new();
+
+            let _ = signal::read_wave(&mut sig, &signal);
+
+            let result = dsp::scaling(&sig, amplitude);
+
+            let _ = signal::save_wave(&result, &out_signal);
+        }
     }
 }
