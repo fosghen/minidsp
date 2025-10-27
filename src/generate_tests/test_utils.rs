@@ -1,7 +1,7 @@
 use crate::signal;
 
 /// Helper function for frequency measurement using zero-crossing detection
-pub fn compute_freq(signal: &Vec<f64>, num_pts: i32, idx_start: i32) -> f64 {
+pub fn compute_freq(signal: &[f64], num_pts: i32, idx_start: i32) -> f64 {
     let mut zeros = 0;
 
     for pair in signal[idx_start as usize..(idx_start + num_pts) as usize].windows(2) {

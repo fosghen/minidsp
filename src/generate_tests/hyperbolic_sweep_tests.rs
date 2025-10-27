@@ -6,7 +6,7 @@ mod tests {
     use super::*;
 
     // Helper function for frequency measurement
-    fn compute_freq(signal: &Vec<f64>, num_pts: i32, idx_start: i32) -> f64 {
+    fn compute_freq(signal: &[f64], num_pts: i32, idx_start: i32) -> f64 {
         let mut zeros = 0;
 
         for pair in signal[idx_start as usize..(idx_start + num_pts) as usize].windows(2) {
@@ -34,7 +34,7 @@ mod tests {
         assert!(!signal.is_empty(), "Linear sweep signal should not be empty");
         
         // Check that all values are within [-1, 1] range (since we use sin)
-        assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+        assert!(signal.iter().all(|&x| (-1.0..=1.0).contains(&x)), 
                 "All sweep values should be within [-1, 1] range");
     }
 
@@ -59,7 +59,7 @@ mod tests {
         "Freq at end is {}, but expect {}", compute_freq(&signal, 100, expected_samples as i32 - 101), f1);
 
         // Check that all values are within [-1, 1] range (since we use sin)
-        assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+        assert!(signal.iter().all(|&x| (-1.0..=1.0).contains(&x)), 
                 "All sweep values should be within [-1, 1] range");
     }
 
@@ -86,7 +86,7 @@ mod tests {
         "Freq at end is {}, but expect {}", compute_freq(&signal, 100, expected_samples as i32 - 101), f1);
 
         // Check that all values are within [-1, 1] range (since we use sin)
-        assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+        assert!(signal.iter().all(|&x| (-1.0..=1.0).contains(&x)), 
                 "All sweep values should be within [-1, 1] range");
     }
 
@@ -235,7 +235,7 @@ mod tests {
                    "All signal values should be finite for f0={}, f1={}, t1={}", f0, f1, t1);
             
             // Check amplitude range
-            assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+            assert!(signal.iter().all(|&x| (-1.0..=1.0).contains(&x)), 
                    "All signal values should be in [-1, 1] for f0={}, f1={}, t1={}", f0, f1, t1);
         }
     }
@@ -257,8 +257,8 @@ mod tests {
         let window_size = 100;
         
         // Check start frequency (should be close)
-        let hyper_start_freq = compute_freq(&hyperbolic_signal, window_size as i32, 0);
-        let linear_start_freq = compute_freq(&linear_signal, window_size as i32, 0);
+        let hyper_start_freq = compute_freq(&hyperbolic_signal, window_size, 0);
+        let linear_start_freq = compute_freq(&linear_signal, window_size, 0);
         
         let start_diff = (hyper_start_freq - linear_start_freq).abs();
         assert!(start_diff < f0 * 0.1, "Start frequencies should be similar");
@@ -331,7 +331,7 @@ mod tests {
     fn test_create_hyperbolic_sweep_very_short_duration() {
         // Test very short duration
         let signal = generate::create_hyperbolic_sweep(100.0, 1000.0, 0.0001).unwrap();
-        assert!(signal.len() >= 1, "Very short duration should produce at least one sample");
+        assert!(!signal.is_empty(), "Very short duration should produce at least one sample");
         assert!(signal.iter().all(|&x| x.is_finite()), "Very short signal should have finite values");
     }
 }

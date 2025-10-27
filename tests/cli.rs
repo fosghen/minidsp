@@ -1,15 +1,13 @@
 use assert_cmd::prelude::*;
-use std::process::Command;
 use std::fs;
+use std::process::Command;
 
 #[test]
 fn test_general_help() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("-h");
-    cmd.assert()
-        .success()
-        .stdout(
-r#"Make some dsp with .wav files
+    cmd.assert().success().stdout(
+        r#"Make some dsp with .wav files
 
 Usage: minidsp <COMMAND>
 
@@ -17,12 +15,14 @@ Commands:
   gen   Generare signal
   add   Sum of two signals
   sub   Substraction of two signals
+  mux   Multiplex of two signals
   help  Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help     Print help
   -V, --version  Print version
-"#);
+"#,
+    );
 
     Ok(())
 }
@@ -81,10 +81,8 @@ Print this message or the help of the given subcommand(s)
 fn test_add_help() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("add").arg("-h");
-    cmd.assert()
-        .success()
-        .stdout(
-r#"Sum of two signals
+    cmd.assert().success().stdout(
+        r#"Sum of two signals
 
 Usage: minidsp add [OPTIONS] --signal1 <SIGNAL1> --signal2 <SIGNAL2>
 
@@ -93,7 +91,8 @@ Options:
   -2, --signal2 <SIGNAL2>        second signal
   -o, --out-signal <OUT_SIGNAL>  fname of output signal [default: sum_of_signals.wav]
   -h, --help                     Print help
-"#);
+"#,
+    );
 
     Ok(())
 }
@@ -102,10 +101,8 @@ Options:
 fn test_sub_help() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("sub").arg("-h");
-    cmd.assert()
-        .success()
-        .stdout(
-r#"Substraction of two signals
+    cmd.assert().success().stdout(
+        r#"Substraction of two signals
 
 Usage: minidsp sub [OPTIONS] --signal1 <SIGNAL1> --signal2 <SIGNAL2>
 
@@ -114,7 +111,28 @@ Options:
   -2, --signal2 <SIGNAL2>        second signal
   -o, --out-signal <OUT_SIGNAL>  fname of output signal [default: sub_of_signals.wav]
   -h, --help                     Print help
-"#);
+"#,
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_mux_help() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("minidsp")?;
+    cmd.arg("mux").arg("-h");
+    cmd.assert().success().stdout(
+        r#"Multiplex of two signals
+
+Usage: minidsp mux [OPTIONS] --signal1 <SIGNAL1> --signal2 <SIGNAL2>
+
+Options:
+  -1, --signal1 <SIGNAL1>        first signal
+  -2, --signal2 <SIGNAL2>        second signal
+  -o, --out-signal <OUT_SIGNAL>  fname of output signal [default: mux_of_signals.wav]
+  -h, --help                     Print help
+"#,
+    );
 
     Ok(())
 }
@@ -123,9 +141,7 @@ Options:
 fn test_gen_sine() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("gen").arg("sine");
-    cmd.assert()
-        .success()
-        .stdout("Generate sinus\n");
+    cmd.assert().success().stdout("Generate sinus\n");
 
     fs::remove_file("sine_50hz.wav").ok();
 
@@ -136,9 +152,7 @@ fn test_gen_sine() -> Result<(), Box<dyn std::error::Error>> {
 fn test_gen_noise() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("gen").arg("noise");
-    cmd.assert()
-        .success()
-        .stdout("Genearate noise!!\n");
+    cmd.assert().success().stdout("Genearate noise!!\n");
 
     fs::remove_file("noise_1mu_1std.wav").ok();
 
@@ -149,9 +163,7 @@ fn test_gen_noise() -> Result<(), Box<dyn std::error::Error>> {
 fn test_gen_linear_sweep() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("gen").arg("sweep");
-    cmd.assert()
-        .success()
-        .stdout("Genearate sweep!!\n");
+    cmd.assert().success().stdout("Genearate sweep!!\n");
 
     fs::remove_file("sweep_1_1_linear.wav").ok();
 
@@ -162,9 +174,7 @@ fn test_gen_linear_sweep() -> Result<(), Box<dyn std::error::Error>> {
 fn test_gen_quadratic_sweep() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("gen").arg("sweep").arg("-m").arg("quadratic");
-    cmd.assert()
-        .success()
-        .stdout("Genearate sweep!!\n");
+    cmd.assert().success().stdout("Genearate sweep!!\n");
 
     fs::remove_file("sweep_1_1_quadratic.wav").ok();
 
@@ -175,9 +185,7 @@ fn test_gen_quadratic_sweep() -> Result<(), Box<dyn std::error::Error>> {
 fn test_gen_hyperbolic_sweep() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
     cmd.arg("gen").arg("sweep").arg("-m").arg("hyperbolic");
-    cmd.assert()
-        .success()
-        .stdout("Genearate sweep!!\n");
+    cmd.assert().success().stdout("Genearate sweep!!\n");
 
     fs::remove_file("sweep_1_1_hyperbolic.wav").ok();
 
@@ -187,34 +195,39 @@ fn test_gen_hyperbolic_sweep() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn test_gen_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
-    cmd.arg("gen").arg("sine")
-    .arg("-f").arg("30")
-    .arg("-d").arg("3")
-    .arg("-o").arg("sine1.wav");
+    cmd.arg("gen")
+        .arg("sine")
+        .arg("-f")
+        .arg("30")
+        .arg("-d")
+        .arg("3")
+        .arg("-o")
+        .arg("sine1.wav");
 
-    cmd.assert()
-        .success()
-        .stdout("Generate sinus\n");
-    
+    cmd.assert().success().stdout("Generate sinus\n");
 
     let mut cmd2 = Command::cargo_bin("minidsp")?;
-    cmd2.arg("gen").arg("sine")
-    .arg("-f").arg("30")
-    .arg("-d").arg("2")
-    .arg("-o").arg("sine2.wav");
+    cmd2.arg("gen")
+        .arg("sine")
+        .arg("-f")
+        .arg("30")
+        .arg("-d")
+        .arg("2")
+        .arg("-o")
+        .arg("sine2.wav");
 
-    cmd2.assert()
-        .success()
-        .stdout("Generate sinus\n");
+    cmd2.assert().success().stdout("Generate sinus\n");
 
     let mut cmd3 = Command::cargo_bin("minidsp")?;
     cmd3.arg("add")
-    .arg("-1").arg("sine1.wav")
-    .arg("-2").arg("sine2.wav")
-    .arg("-o").arg("sine3.wav");
+        .arg("-1")
+        .arg("sine1.wav")
+        .arg("-2")
+        .arg("sine2.wav")
+        .arg("-o")
+        .arg("sine3.wav");
 
-    cmd3.assert()
-        .success();
+    cmd3.assert().success();
     fs::remove_file("sine1.wav").ok();
     fs::remove_file("sine2.wav").ok();
     fs::remove_file("sine3.wav").ok();
@@ -225,34 +238,39 @@ fn test_gen_dsp_add() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn test_gen_dsp_sub() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("minidsp")?;
-    cmd.arg("gen").arg("sine")
-    .arg("-f").arg("30")
-    .arg("-d").arg("3")
-    .arg("-o").arg("sine1.wav");
+    cmd.arg("gen")
+        .arg("sine")
+        .arg("-f")
+        .arg("30")
+        .arg("-d")
+        .arg("3")
+        .arg("-o")
+        .arg("sine1.wav");
 
-    cmd.assert()
-        .success()
-        .stdout("Generate sinus\n");
-    
+    cmd.assert().success().stdout("Generate sinus\n");
 
     let mut cmd2 = Command::cargo_bin("minidsp")?;
-    cmd2.arg("gen").arg("sine")
-    .arg("-f").arg("30")
-    .arg("-d").arg("2")
-    .arg("-o").arg("sine2.wav");
+    cmd2.arg("gen")
+        .arg("sine")
+        .arg("-f")
+        .arg("30")
+        .arg("-d")
+        .arg("2")
+        .arg("-o")
+        .arg("sine2.wav");
 
-    cmd2.assert()
-        .success()
-        .stdout("Generate sinus\n");
+    cmd2.assert().success().stdout("Generate sinus\n");
 
     let mut cmd3 = Command::cargo_bin("minidsp")?;
     cmd3.arg("sub")
-    .arg("-1").arg("sine1.wav")
-    .arg("-2").arg("sine2.wav")
-    .arg("-o").arg("sine3.wav");
+        .arg("-1")
+        .arg("sine1.wav")
+        .arg("-2")
+        .arg("sine2.wav")
+        .arg("-o")
+        .arg("sine3.wav");
 
-    cmd3.assert()
-        .success();
+    cmd3.assert().success();
     fs::remove_file("sine1.wav").ok();
     fs::remove_file("sine2.wav").ok();
     fs::remove_file("sine3.wav").ok();

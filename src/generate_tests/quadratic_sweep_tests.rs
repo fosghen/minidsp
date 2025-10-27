@@ -6,7 +6,7 @@ mod tests {
     use super::*;
 
     // Helper function for frequency measurement
-    fn compute_freq(signal: &Vec<f64>, num_pts: i32, idx_start: i32) -> f64 {
+    fn compute_freq(signal: &[f64], num_pts: i32, idx_start: i32) -> f64 {
         let mut zeros = 0;
 
         for pair in signal[idx_start as usize..(idx_start + num_pts) as usize].windows(2) {
@@ -35,7 +35,7 @@ mod tests {
         assert!(!signal.is_empty(), "Quadratic sweep signal should not be empty");
         
         // Check that all values are within [-1, 1] range (since we use sin)
-        assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+        assert!(signal.iter().all(|&x| (-1.0..=1.0).contains(&x)), 
                 "All quadratic sweep values should be within [-1, 1] range");
     }
 
@@ -129,9 +129,9 @@ mod tests {
         assert!(similarity_ratio < 0.8, "Quadratic sweeps with different vertex_zero should be different");
         
         // Both should have valid ranges
-        assert!(signal_true.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+        assert!(signal_true.iter().all(|&x| (-1.0..=1.0).contains(&x)), 
                "vertex_zero=true signal should be in [-1, 1] range");
-        assert!(signal_false.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+        assert!(signal_false.iter().all(|&x| (-1.0..=1.0).contains(&x)), 
                "vertex_zero=false signal should be in [-1, 1] range");
     }
 
@@ -177,7 +177,7 @@ mod tests {
         
         // Test very short duration
         let signal = generate::create_quadratic_sweep(100.0, 1000.0, 0.0001, true);
-        assert!(signal.len() >= 1, "Very short duration should produce at least one sample");
+        assert!(!signal.is_empty(), "Very short duration should produce at least one sample");
         
         // Test when f0 == f1 (constant frequency case)
         let f0 = 440.0;
@@ -219,7 +219,7 @@ mod tests {
                    f0, f1, t1, vertex_zero);
             
             // Check amplitude range
-            assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0), 
+            assert!(signal.iter().all(|&x| (-1.0..=1.0).contains(&x)), 
                    "All signal values should be in [-1, 1] for f0={}, f1={}, t1={}, vertex_zero={}", 
                    f0, f1, t1, vertex_zero);
         }
@@ -299,9 +299,9 @@ mod tests {
         let window_size = 100;
         
         // Check start frequency (should be close to 0 for all sweeps)
-        let quad_start_freq = compute_freq(&quadratic_signal, window_size as i32, 0);
-        let linear_start_freq = compute_freq(&linear_signal, window_size as i32, 0);
-        let hyper_start_freq = compute_freq(&hyperbolic_signal, window_size as i32, 0);
+        let quad_start_freq = compute_freq(&quadratic_signal, window_size, 0);
+        let linear_start_freq = compute_freq(&linear_signal, window_size, 0);
+        let hyper_start_freq = compute_freq(&hyperbolic_signal, window_size, 0);
         
         // Start frequencies should be similar (all close to f0)
         let start_tolerance = f0 * 0.2;

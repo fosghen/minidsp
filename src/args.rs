@@ -2,7 +2,7 @@ use clap::{Args, Parser, Subcommand};
 
 // Делаем парсер командной строки
 // структура такая: [operation] [operation args]
-// gen 
+// gen
 //     sine -freq -phase -ampl -duration
 //     noise -ampl -std -mu
 #[derive(Parser)]
@@ -21,29 +21,53 @@ pub enum Commands {
     /// Sum of two signals
     Add {
         #[arg(short('1'), long, help = "first signal")]
-        signal1: String, 
+        signal1: String,
         #[arg(short('2'), long, help = "second signal")]
         signal2: String,
-        #[arg(short, long, default_value = "sum_of_signals.wav", help = "fname of output signal")]
+        #[arg(
+            short,
+            long,
+            default_value = "sum_of_signals.wav",
+            help = "fname of output signal"
+        )]
         out_signal: String,
     },
     /// Substraction of two signals
     Sub {
         #[arg(short('1'), long, help = "first signal")]
-        signal1: String, 
+        signal1: String,
         #[arg(short('2'), long, help = "second signal")]
         signal2: String,
-        #[arg(short, long, default_value = "sub_of_signals.wav", help = "fname of output signal")]
+        #[arg(
+            short,
+            long,
+            default_value = "sub_of_signals.wav",
+            help = "fname of output signal"
+        )]
         out_signal: String,
-    }
+    },
+    /// Multiplex of two signals
+    Mux {
+        #[arg(short('1'), long, help = "first signal")]
+        signal1: String,
+        #[arg(short('2'), long, help = "second signal")]
+        signal2: String,
+        #[arg(
+            short,
+            long,
+            default_value = "mux_of_signals.wav",
+            help = "fname of output signal"
+        )]
+        out_signal: String,
+    },
 }
 
 #[derive(Debug, Args)]
 #[command(args_conflicts_with_subcommands = true)]
 #[command(flatten_help = true)]
-pub struct GenArgs{
+pub struct GenArgs {
     #[command(subcommand)]
-    pub command: Option<GenCommands>
+    pub command: Option<GenCommands>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -79,13 +103,18 @@ pub enum GenCommands {
         f1: f64,
         #[arg(long, default_value_t = 1., help = "time for stop sweep")]
         t1: f64,
-        #[arg(short, long, default_value = "linear", help = "type of sweep: linear, quadratic, logarithmic, hyperbolic")]
+        #[arg(
+            short,
+            long,
+            default_value = "linear",
+            help = "type of sweep: linear, quadratic, logarithmic, hyperbolic"
+        )]
         method: String,
         #[arg(short, long, help = "only for quadratic, vertex of the parabola")]
         vertex_zero: bool,
         #[arg(short, long, default_value = "", help = "filename")]
         out_filename: String,
-    }
+    },
 }
 
 #[cfg(test)]
@@ -96,16 +125,29 @@ mod tests {
     #[test]
     fn test_parses_gen_sine_with_long_flags() {
         let cli = Cli::try_parse_from([
-            "minidsp", "gen", "sine",
-            "--freq", "440",
-            "--phase", "0.0",
-            "--duration", "2.0",
-            "--amplitude", "0.5",
-        ]).expect("should parse");
+            "minidsp",
+            "gen",
+            "sine",
+            "--freq",
+            "440",
+            "--phase",
+            "0.0",
+            "--duration",
+            "2.0",
+            "--amplitude",
+            "0.5",
+        ])
+        .expect("should parse");
 
-        match cli.command {
-            Commands::Gen(gen_args) => match gen_args.command {
-                Some(GenCommands::Sine { freq, phase, duration, amplitude, out_filename}) => {
+        if let Commands::Gen(gen_args) = cli.command {
+            match gen_args.command {
+                Some(GenCommands::Sine {
+                    freq,
+                    phase,
+                    duration,
+                    amplitude,
+                    out_filename,
+                }) => {
                     assert_eq!(freq, 440.0);
                     assert_eq!(phase, 0.0);
                     assert_eq!(duration, 2.0);
@@ -113,8 +155,7 @@ mod tests {
                     assert_eq!(out_filename, "");
                 }
                 other => panic!("expected Sine, got {:?}", other),
-            },
-            _=>{},
+            }
         }
     }
 
@@ -123,19 +164,24 @@ mod tests {
         // short flags по именам полей: duration -> -a, std -> -s, mu -> -m
         let cli = Cli::try_parse_from([
             "minidsp", "gen", "noise", "-d", "0.2", "-s", "0.1", "-m", "0.0",
-        ]).expect("should parse");
+        ])
+        .expect("should parse");
 
-        match cli.command {
-            Commands::Gen(gen_args) => match gen_args.command {
-                Some(GenCommands::Noise {duration, std, mu, out_filename}) => {
+        if let Commands::Gen(gen_args) = cli.command {
+            match gen_args.command {
+                Some(GenCommands::Noise {
+                    duration,
+                    std,
+                    mu,
+                    out_filename,
+                }) => {
                     assert_eq!(duration, 0.2);
                     assert_eq!(std, 0.1);
                     assert_eq!(mu, 0.0);
                     assert_eq!(out_filename, "");
                 }
                 other => panic!("expected Noise, got {:?}", other),
-            },
-            _=>{},
+            }
         }
     }
 
@@ -144,9 +190,16 @@ mod tests {
         // Можно опустить флаги, у которых есть default_value_t / default_value
         let cli = Cli::try_parse_from(["minidsp", "gen", "sweep"]).expect("should parse");
 
-        match cli.command {
-            Commands::Gen(gen_args) => match gen_args.command {
-                Some(GenCommands::Sweep { f0, f1, t1, method, vertex_zero, out_filename}) => {
+        if let Commands::Gen(gen_args) = cli.command {
+            match gen_args.command {
+                Some(GenCommands::Sweep {
+                    f0,
+                    f1,
+                    t1,
+                    method,
+                    vertex_zero,
+                    out_filename,
+                }) => {
                     assert_eq!(f0, 1.0);
                     assert_eq!(f1, 1.0);
                     assert_eq!(t1, 1.0);
@@ -155,8 +208,7 @@ mod tests {
                     assert_eq!(out_filename, "");
                 }
                 other => panic!("expected Sweep, got {:?}", other),
-            },
-            _=>{},
+            }
         }
     }
 
@@ -165,11 +217,8 @@ mod tests {
         // subcommand у Gen — Option<GenCommands>, значит без подкоманды вернётся None
         let cli = Cli::try_parse_from(["minidsp", "gen"]).expect("should parse");
 
-        match cli.command {
-            Commands::Gen(gen_args) => {
-                assert!(gen_args.command.is_none(), "expected no subcommand");
-            }
-            _=>{},
+        if let Commands::Gen(gen_args) = cli.command {
+            assert!(gen_args.command.is_none(), "expected no subcommand");
         }
     }
 

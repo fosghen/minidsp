@@ -99,7 +99,7 @@ mod tests {
         
         // Test very short duration
         let signal = generate::create_sine(100.0, 0.0, 0.0001, 1.0);
-        assert!(signal.len() >= 1, "Should have at least one sample even for very short duration");
+        assert!(!signal.is_empty(), "Should have at least one sample even for very short duration");
         
         // Test very low frequency
         let signal = generate::create_sine(0.1, 0.0, 1.0, 1.0);

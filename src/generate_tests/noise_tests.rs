@@ -96,7 +96,7 @@ mod tests {
         let result = generate::create_noise(0.0001, 1.0, 0.0);
         assert!(result.is_ok());
         let signal = result.unwrap();
-        assert!(signal.len() >= 1, "Should have at least one sample even for very short duration");
+        assert!(!signal.is_empty(), "Should have at least one sample even for very short duration");
         
         // Test zero std (should fail or return constant values)
         let result = generate::create_noise(0.01, 0.0, 1.0);
@@ -113,7 +113,7 @@ mod tests {
             },
             Err(_) => {
                 // It's also acceptable for this to fail
-                assert!(true, "Zero std is expected to fail");
+                panic!("Zero std is expected to fail");
             }
         }
         
@@ -124,11 +124,10 @@ mod tests {
         match result {
             Ok(_) => {
                 // If it succeeds, that's also acceptable behavior
-                assert!(true, "Negative std was handled gracefully");
             },
             Err(_) => {
                 // If it fails, that's also acceptable
-                assert!(true, "Negative std correctly caused an error");
+                panic!("Negative std correctly caused an error");
             }
         }
     }
